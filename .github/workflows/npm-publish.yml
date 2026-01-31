@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm to support OIDC
         run: npm install -g npm@latest
@@ -50,6 +51,8 @@ jobs:
         if: steps.check-version.outputs.exists == 'false'
         working-directory: ./node-red-contrib-google-spreadsheet-plus
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Skip publishing
         if: steps.check-version.outputs.exists == 'true'
