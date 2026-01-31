@@ -1,0 +1,96 @@
+[
+    {
+        "id": "append_tab",
+        "type": "tab",
+        "label": "Append Rows Example",
+        "disabled": false,
+        "info": "Example of appending new rows to Google Sheets.\n\n**Setup:**\n1. Configure credentials in the google-spreadsheet node\n2. Set your spreadsheet ID in the inject node\n3. Click the inject button to append rows"
+    },
+    {
+        "id": "inject_append",
+        "type": "inject",
+        "z": "append_tab",
+        "name": "Append Rows",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "spreadsheetId",
+                "v": "YOUR_SPREADSHEET_ID",
+                "vt": "str"
+            },
+            {
+                "p": "range",
+                "v": "Sheet1!A:D",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[[\"Product A\",29.99,100,\"In Stock\"],[\"Product B\",49.99,50,\"In Stock\"]]",
+        "payloadType": "json",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "append_node"
+            ]
+        ]
+    },
+    {
+        "id": "append_node",
+        "type": "google-spreadsheet",
+        "z": "append_tab",
+        "name": "Append to Sheet",
+        "auth": "",
+        "sheet": "spreadsheetId",
+        "range": "range",
+        "method": "append",
+        "direction": "line",
+        "action": "set",
+        "clear": false,
+        "line": false,
+        "column": false,
+        "fields": "all",
+        "save": "_sheet",
+        "selfields": [
+            ""
+        ],
+        "input": "payload",
+        "output": "result",
+        "saveType": "msg",
+        "inputType": "msg",
+        "outputType": "msg",
+        "sheetType": "msg",
+        "rangeType": "msg",
+        "x": 360,
+        "y": 100,
+        "wires": [
+            [
+                "debug_result"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "debug_result",
+        "type": "debug",
+        "z": "append_tab",
+        "name": "Append Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "result",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 100,
+        "wires": []
+    }
+]

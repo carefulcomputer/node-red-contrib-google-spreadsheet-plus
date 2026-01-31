@@ -1,0 +1,37 @@
+# Development files
+*.test.js
+tests/
+jest.config.js
+coverage/
+.nyc_output/
+.npmignore
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+# Documentation (keep README.md)
+docs/
+
+# Package manager
+package-lock.json
+yarn.lock
+
+# Build artifacts
+*.log
+npm-debug.log*
+
+# Backup files
+*-backup.*
+*.bak
+
+# GitHub Actions (not needed in npm package)
+.github/

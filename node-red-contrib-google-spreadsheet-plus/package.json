@@ -1,0 +1,52 @@
+{
+    "name": "node-red-contrib-google-spreadsheet-plus",
+    "version": "2.0.0",
+    "description": "Enhanced Google Sheets integration with caching, data transformations, and modern authentication for Node-RED",
+    "main": "nodes/google-spreadsheet.js",
+    "scripts": {
+        "test": "jest --coverage",
+        "test:watch": "jest --watch",
+        "test:verbose": "jest --verbose --coverage"
+    },
+    "dependencies": {
+        "googleapis": "^170.1.0"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0"
+    },
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/carefulcomputer/node-red-contrib-google-spreadsheet-plus"
+    },
+    "license": "Apache-2.0",
+    "author": "Careful Computer",
+    "keywords": [
+        "node-red",
+        "google",
+        "sheets",
+        "spreadsheet",
+        "plus",
+        "enhanced",
+        "cache",
+        "caching",
+        "transform",
+        "data-transformation",
+        "api",
+        "gcp",
+        "authentication",
+        "service-account",
+        "async",
+        "modern",
+        "production"
+    ],
+    "node-red": {
+        "version": ">=3.0.0",
+        "nodes": {
+            "google-service-account": "nodes/google-service-account.js",
+            "google-spreadsheet": "nodes/google-spreadsheet.js"
+        }
+    }
+}

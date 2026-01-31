@@ -1,0 +1,292 @@
+<script type="text/javascript">
+    RED.nodes.registerType('google-spreadsheet',{
+        category: 'storage',
+        color: '#0F9D58',
+        defaults: { 
+            name:    { value: undefined },
+            auth:    { value: undefined, type: 'google-service-account', required: true },
+            sheet:   { value: undefined },
+            range:   { value: undefined },
+            method:  { value: 'append' },
+            direction: {value: 'line' },
+            action:   { value: 'get' },
+            clear:    {value: false},
+            line:    { value: false},
+            column:  { value: false},
+            fields:  { value: 'all' },
+            save:    { value: '_sheet'},
+            selfields: {value: [""]},
+            input:   { value: undefined, required: false },
+            output:  { value: 'payload', required: false },
+            saveType:  {value: 'msg'},
+            inputType:  {value: 'msg'},
+            outputType: {value: 'msg'},
+            sheetType:  {value: 'str'},
+            rangeType:  {value: 'str'}
+        },
+        inputs:  1,
+        outputs: 2,
+        icon: "font-awesome/fa-file-excel-o",
+        align: "left",
+        paletteLabel: 'Sheets',
+        label: function() { return this.name || "Google Sheets"; },
+        oneditprepare: function() {
+            $("#node-input-name").typedInput({  default: 'str',  types: ['str'],  type:'str' });
+            $("#node-input-sheet").typedInput({  default: 'str',  types: ['str','msg','global'],  typeField: $("#node-input-sheetType") });
+            $("#node-input-range").typedInput({  default: 'str',  types: ['str','msg','global'],  typeField: $("#node-input-rangeType") });
+            $("#node-input-save").typedInput({  default: 'msg',  types: ['msg','global'],  typeField: $("#node-input-saveType") });
+            $("#node-input-input").typedInput({  default: 'msg',  types: ['msg','global'], typeField: $("#node-input-inputType")  });
+            $("#node-input-output").typedInput({  default: 'msg',  types: ['msg','global'], typeField: $("#node-input-outputType")  });
+
+            $("#node-input-action").change(function() {
+                $(".set, .get, .ctn").hide();
+                if ($(this).val() === "set") {
+                    $(".set").show();
+                    if ($("#node-input-fields").val() === "select") $(".ctn").show();
+                    if ($("#node-input-method").val() === "new") $(".new").show();
+                    $("#node-input-input").typedInput('show');
+                }
+                else if ($(this).val() === "get") $(".get").show();
+            });
+
+            $("#node-input-fields").change(function() {
+                $(".ctn").hide();
+                if ($(this).val() === "select") $(".ctn").show();
+            });
+
+            $("#node-input-method").change(function(){
+                $(".new").hide();
+                if ($(this).val() === "new") $(".new").show();
+            });
+            
+            // Trigger initial display based on current values
+            $("#node-input-action").trigger('change');
+            $("#node-input-fields").trigger('change');
+            $("#node-input-method").trigger('change');
+
+            $("#node-input-selfields-ctn").css('min-height','100px').editableList({
+                addItem: function ( row, index, data ) {
+                    var content = data.field || '';
+                    var hiddenField = $('<span/>', {}).appendTo(row);
+                    var titleField =  $('<input/>',  { class:"node-input-property-ctn",  type:"text", style:"width:90%", value: content,  placeholder:"field.name or path.to.field"}).appendTo(row);
+                },
+                sortable: true,
+                removable: true
+            });
+
+            for (var i=0; i<this.selfields.length; i++) {      
+                var field = this.selfields[i];
+                $("#node-input-selfields-ctn").editableList('addItem', { field: field });
+            }
+        },
+        oneditsave: function(){
+            let fields = $("#node-input-selfields-ctn").editableList('items'),
+                results = new Array();
+
+            fields.each(function(i) {
+                var content = $(this).find('.node-input-property-ctn').val();
+                if (content) results.push(content);
+            });
+            this.selfields = (results.length === 0) ? [""] : results;
+            
+        }
+    });
+</script>
+
+<style>
+    .input-info { font-size: 12px; padding-left: 104px; font-style: italic; }
+    textarea { resize: vertical; }
+    .section-header { 
+        font-weight: bold; 
+        margin-top: 15px; 
+        margin-bottom: 8px; 
+        color: #666; 
+        border-bottom: 1px solid #ddd; 
+        padding-bottom: 5px;
+    }
+    .form-section {
+        background: #f9f9f9;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 3px;
+    }
+    .warning-box {
+        background: var(--red-ui-secondary-background, #f9f9f9);
+        border: 1px solid var(--red-ui-secondary-border-color, #ddd);
+        border-left: 3px solid var(--red-ui-primary-color, #8f0000);
+        padding: 10px;
+        margin: 10px 0;
+    }
+</style>
+
+<script type="text/x-red" data-template-name="google-spreadsheet">
+    <div class="form-row" style="min-width:600px;">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" style="width:70%;" placeholder="My Sheets Reader">
+    </div>
+
+    <div class="section-header">Google Spreadsheet Settings</div>
+
+    <div class="form-row">
+        <label for="node-input-auth"><i class="fa fa-lock"></i> Credentials</label>
+        <input type="text" id="node-input-auth" style="width: 70%" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-sheet"><i class="fa fa-table"></i> Spreadsheet ID</label>
+        <input type="text" id="node-input-sheet" style="width: 70%" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" title="Copy from URL: https://docs.google.com/spreadsheets/d/[ID]/edit">
+        <input type="hidden" id="node-input-sheetType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-range"><i class="fa fa-table"></i> Range (A1 notation)</label>
+        <input type="text" id="node-input-range" style="width: 70%" placeholder="Sheet1 or Sheet1!A1:D10" title="Minimum: sheet name (e.g., 'Sheet1'). Full: 'Sheet1!A1:D10'">
+        <input type="hidden" id="node-input-rangeType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-save"><i class="fa fa-save"></i> Cache Location</label>
+        <input type="text" id="node-input-save" style="width: 70%" placeholder="_sheet" title="Cache storage for repeated reads. Clear when spreadsheet changes externally.">
+        <input type="hidden" id="node-input-saveType">
+    </div>
+
+    <div class="section-header">Request Settings</div>
+
+    <div class="form-row">
+        <label for="node-input-action"><i class="fa fa-tasks"></i> Action</label>
+        <select id="node-input-action" style="width: 34%">
+            <option value="set">Set data</option>
+            <option value="get">Get data</option>
+            <option value="clear">Clear data</option>
+        </select>
+        <select class="set" id="node-input-method" style="width: 35%">
+            <option value="append">Append</option>
+            <option value="update">Update</option>
+            <option value="new">New</option>
+        </select>
+        <select class="get" id="node-input-direction" style="width: 35%">
+            <option value="line">By line</option>
+            <option value="column">By column</option>
+        </select>
+    </div>
+
+    <div class="form-row new get">
+        <label><i class="fa fa-tags"></i> Labels</label>
+        <input type="checkbox" style="width: auto; vertical-align:top;" id="node-input-line"> <span>First line for labels</span>
+        <input type="checkbox" style="width: auto; vertical-align:top;  margin-left:25px;" id="node-input-column"> <span>First column for labels</span>
+    </div>
+
+    <div class="form-row set">
+        <label for="node-input-input"><i class="fa fa-sign-in"></i> Input</label>
+        <input type="text" id="node-input-input" style="width: 70%" placeholder="payload" title="Data source: msg.payload, global.myData, etc."/> 
+        <input type="hidden" id="node-input-inputType">
+    </div>
+
+    <div class="form-row set">
+        <label for="node-input-fields"><i class="fa fa-tags"></i> Fields</label>
+        <select id="node-input-fields" style="width: 70%">
+            <option value="all">All</option>
+            <option value="select">Select</option>
+        </select>
+    </div>
+
+
+    <div class="form-row ctn" style="width:70%; margin-left: 105px;">
+        <ol id="node-input-selfields-ctn"></ol>
+        <!-- <textarea id="node-input-selfields" rows="5" style="width:70%; margin-left: 105px;" placeholder="path.to.field"></textarea> -->
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-output"><i class="fa fa-sign-out"></i> Output</label>
+        <input type="text" id="node-input-output" style="width: 70%" placeholder="payload" title="Where to store results: msg.payload, flow.results, etc."/>
+        <input type="hidden" id="node-input-outputType">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="google-spreadsheet">
+
+    <p>Read, write, update, append, and clear data in Google Sheets using the Sheets API.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">spreadsheetId <span class="property-type">string</span></dt>
+        <dd>The spreadsheet ID from the URL (if not configured in node). 
+            Example: <code>1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms</code></dd>
+
+        <dt class="optional">range <span class="property-type">string</span></dt>
+        <dd>A1 notation for the target range (if not configured in node). 
+            Examples: <code>Sheet1</code>, <code>Sheet1!A1:D10</code>, <code>'My Sheet'!A:D</code></dd>
+
+        <dt class="optional">payload <span class="property-type">array | object</span></dt>
+        <dd>Data to write when action is "Set Data". Can be:
+            <ul>
+                <li>Array of arrays: <code>[["Name", "Age"], ["John", 30]]</code></li>
+                <li>Array of objects: <code>[{name: "John", age: 30}]</code></li>
+                <li>Single value: <code>"Hello"</code> or <code>42</code></li>
+            </ul>
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">array | object | string</span></dt>
+        <dd>For "Get Data": Returns spreadsheet data as 2D array, array of objects, or nested object depending on label settings.</dd>
+
+        <dt>result <span class="property-type">object</span></dt>
+        <dd>For "Set Data": Contains the API response with update details (updatedCells, updatedRows, etc.).</dd>
+
+        <dt>_sheet <span class="property-type">object</span></dt>
+        <dd>Cached spreadsheet data (when caching is enabled).</dd>
+    </dl>
+
+    <h3>Details</h3>
+    
+    <h4>⚠️ Important Setup</h4>
+    <div style="background: var(--red-ui-secondary-background, #f9f9f9); border: 1px solid var(--red-ui-secondary-border-color, #ddd); border-left: 3px solid var(--red-ui-primary-color, #8f0000); padding: 10px; margin: 10px 0;">
+        <strong>Required:</strong> Share your spreadsheet with the service account email address 
+        (found in your credentials) and grant <strong>Editor</strong> (for write) or <strong>Viewer</strong> (for read) permissions.
+        Without sharing, you'll get "Permission denied" errors.
+    </div>
+
+    <h4>Configuration</h4>
+    <dl class="message-properties">
+        <dt>Credentials <span class="property-type">config</span></dt>
+        <dd>Google service account authentication configuration</dd>
+        
+        <dt>Spreadsheet ID <span class="property-type">string</span></dt>
+        <dd>The unique identifier from your spreadsheet URL. Can be set via msg.spreadsheetId or configured in the node.</dd>
+        
+        <dt>Range <span class="property-type">string</span></dt>
+        <dd>A1 notation for the target range. Can be set via msg.range or configured in the node.</dd>
+        
+        <dt>Cache Location <span class="property-type">string</span></dt>
+        <dd>Storage location for cached read data (default: <code>msg._sheet</code>). 
+            Clear cache when spreadsheet changes externally using a change node or "Clear data" action.</dd>
+        
+        <dt>Output <span class="property-type">string</span></dt>
+        <dd>Where to store operation results (default: <code>msg.payload</code>)</dd>
+    </dl>
+
+    <h4>Actions</h4>
+    
+    <p><strong>Get Data</strong> - Read data from the spreadsheet:</p>
+    <ul>
+        <li><strong>No labels:</strong> Returns 2D array <code>[[row1], [row2], ...]</code></li>
+        <li><strong>First line for labels:</strong> Returns array of objects with keys from first row</li>
+        <li><strong>Both labels:</strong> Returns nested object using first row and column as keys</li>
+    </ul>
+
+    <p><strong>Set Data</strong> - Write data to the spreadsheet:</p>
+    <ul>
+        <li><code>Append</code> - Add new rows after existing data</li>
+        <li><code>Update</code> - Modify cells in the specified range</li>
+        <li><code>New</code> - Clear range first, then write fresh data</li>
+    </ul>
+
+    <p><strong>Clear Data</strong> - Remove all data from the specified range. Cache is automatically cleared.</p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://developers.google.com/sheets/api/guides/concepts" target="_blank">Google Sheets API Documentation</a></li>
+        <li><a href="https://developers.google.com/sheets/api/guides/values" target="_blank">Working with Values - A1 Notation Guide</a></li>
+        <li><a href="https://github.com/googleapis/google-api-nodejs-client" target="_blank">Google APIs Node.js Client</a></li>
+    </ul>
+
+</script>

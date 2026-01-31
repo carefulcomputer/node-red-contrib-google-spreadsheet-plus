@@ -1,0 +1,96 @@
+[
+    {
+        "id": "basic_write_tab",
+        "type": "tab",
+        "label": "Basic Write Example",
+        "disabled": false,
+        "info": "Simple example of writing data to Google Sheets.\n\n**Setup:**\n1. Configure credentials in the google-spreadsheet node\n2. Set your spreadsheet ID in the inject node\n3. Click the inject button to write data"
+    },
+    {
+        "id": "inject_write",
+        "type": "inject",
+        "z": "basic_write_tab",
+        "name": "Write Data",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "spreadsheetId",
+                "v": "YOUR_SPREADSHEET_ID",
+                "vt": "str"
+            },
+            {
+                "p": "range",
+                "v": "Sheet1!A1:C2",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[[\"Name\",\"Age\",\"City\"],[\"John Doe\",30,\"New York\"]]",
+        "payloadType": "json",
+        "x": 140,
+        "y": 100,
+        "wires": [
+            [
+                "write_node"
+            ]
+        ]
+    },
+    {
+        "id": "write_node",
+        "type": "google-spreadsheet",
+        "z": "basic_write_tab",
+        "name": "Write to Sheet",
+        "auth": "",
+        "sheet": "spreadsheetId",
+        "range": "range",
+        "method": "update",
+        "direction": "line",
+        "action": "set",
+        "clear": false,
+        "line": false,
+        "column": false,
+        "fields": "all",
+        "save": "_sheet",
+        "selfields": [
+            ""
+        ],
+        "input": "payload",
+        "output": "result",
+        "saveType": "msg",
+        "inputType": "msg",
+        "outputType": "msg",
+        "sheetType": "msg",
+        "rangeType": "msg",
+        "x": 340,
+        "y": 100,
+        "wires": [
+            [
+                "debug_result"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "debug_result",
+        "type": "debug",
+        "z": "basic_write_tab",
+        "name": "Write Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "result",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 100,
+        "wires": []
+    }
+]

@@ -1,0 +1,91 @@
+[
+    {
+        "id": "basic_read_tab",
+        "type": "tab",
+        "label": "Basic Read Example",
+        "disabled": false,
+        "info": "Simple example of reading data from Google Sheets.\n\n**Setup:**\n1. Configure credentials in the google-spreadsheet node\n2. Set your spreadsheet ID in the inject node\n3. Click the inject button to read data"
+    },
+    {
+        "id": "inject_read",
+        "type": "inject",
+        "z": "basic_read_tab",
+        "name": "Read Sheet",
+        "props": [
+            {
+                "p": "spreadsheetId",
+                "v": "YOUR_SPREADSHEET_ID",
+                "vt": "str"
+            },
+            {
+                "p": "range",
+                "v": "Sheet1!A1:D10",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 140,
+        "y": 100,
+        "wires": [
+            [
+                "read_node"
+            ]
+        ]
+    },
+    {
+        "id": "read_node",
+        "type": "google-spreadsheet",
+        "z": "basic_read_tab",
+        "name": "Read Data",
+        "auth": "",
+        "sheet": "spreadsheetId",
+        "range": "range",
+        "method": "append",
+        "direction": "line",
+        "action": "get",
+        "clear": false,
+        "line": false,
+        "column": false,
+        "fields": "all",
+        "save": "_sheet",
+        "selfields": [
+            ""
+        ],
+        "input": "payload",
+        "output": "payload",
+        "saveType": "msg",
+        "inputType": "msg",
+        "outputType": "msg",
+        "sheetType": "msg",
+        "rangeType": "msg",
+        "x": 320,
+        "y": 100,
+        "wires": [
+            [
+                "debug_output"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "debug_output",
+        "type": "debug",
+        "z": "basic_read_tab",
+        "name": "Sheet Data",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
+        "y": 100,
+        "wires": []
+    }
+]
